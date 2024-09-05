@@ -1,0 +1,106 @@
+1- Creacion de tablas.
+
+-- Crear base de datos --
+
+create database aa14_bd;
+
+-- Crear tabla Estudiantes -- 
+CREATE TABLE Estudiantes (
+    id_estudiante INT PRIMARY KEY,
+    nombre VARCHAR(50),
+    apellido VARCHAR(50),
+    edad INT
+);
+
+-- Crear tabla Cursos --
+CREATE TABLE Cursos (
+    id_curso INT PRIMARY KEY,
+    nombre_curso VARCHAR(50),
+    descripcion TEXT
+);
+
+-- Crear tabla intermedia Inscripciones-relación muchos a muchos --
+CREATE TABLE Inscripciones (
+    id_inscripcion INT PRIMARY KEY,
+    id_estudiante INT,
+    id_curso INT,
+    FOREIGN KEY (id_estudiante) REFERENCES Estudiantes(id_estudiante),
+    FOREIGN KEY (id_curso) REFERENCES Cursos(id_curso)
+);
+
+
+2- Inserción de Datos y Consultas
+
+-- Insertar datos en la tabla Estudiantes -- 
+INSERT INTO Estudiantes (id_estudiante, nombre, apellido, edad) VALUES
+(1, 'Franco', 'Nielsen', 25),
+(2, 'Mariano', 'Villalba', 21),
+(3, 'Danzel', 'Burki', 21);
+
+-- Insertar datos en la tabla Cursos -- 
+INSERT INTO Cursos (id_curso, nombre_curso, descripcion) VALUES
+(4, 'Programación 1', 'Programación primer año'),
+(5, 'Análisis matemático 2', 'Análisis matemático segundo año');
+
+-- Insertar datos en la tabla Inscripciones
+INSERT INTO Inscripciones (id_inscripcion, id_estudiante, id_curso) VALUES
+(6, 1, 5),
+(7, 3, 4),
+(8, 2, 4),
+(9, 2, 5);
+
+-- Consultar estudiantes inscritos en el curso con id_curso 4 (Programación 1) -- 
+SELECT E.nombre, E.apellido
+FROM Estudiantes E
+INNER JOIN Inscripciones I ON E.id_estudiante = I.id_estudiante
+WHERE I.id_curso = 4;
+
+3- Modificación de Tablas con ALTER
+
+-- Añadir el campo email a la tabla Estudiantes --
+ALTER TABLE Estudiantes
+ADD email VARCHAR(100);
+
+-- Cambiar el tipo de dato del campo edad a SMALLINT en la tabla Estudiantes -- 
+ALTER TABLE Estudiantes
+ALTER COLUMN edad TYPE SMALLINT;
+
+-- Eliminar el campo descripcion de la tabla Cursos -- 
+ALTER TABLE Cursos
+DROP COLUMN descripcion;
+
+4- Subconsultas
+
+-- Encontrar los nombres de los cursos en los que está inscrito el estudiante con id_estudiante = 1 --
+SELECT nombre_curso
+FROM Cursos
+WHERE id_curso IN (
+    SELECT id_curso
+    FROM Inscripciones
+    WHERE id_estudiante = 1
+);
+
+-- Encontrar los estudiantes inscritos en más de un curso --
+SELECT E.nombre, E.apellido
+FROM Estudiantes E
+WHERE E.id_estudiante IN (
+    SELECT id_estudiante
+    FROM Inscripciones
+    GROUP BY id_estudiante
+    HAVING COUNT(id_curso) > 1
+);
+
+
+5- Funciones
+
+-- Crear la función para calcular la edad promedio --
+CREATE OR REPLACE FUNCTION calcular_edad_promedio() 
+RETURNS NUMERIC AS
+'SELECT AVG(edad) FROM Estudiantes;'
+LANGUAGE sql;
+
+-- Llamar a la función para obtener la edad promedio --
+SELECT calcular_edad_promedio() AS edad_promedio;
+
+
+
